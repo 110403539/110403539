@@ -9,12 +9,61 @@
     <h1>匯率轉換計算機</h1>
     <div class="converter">
       <label for="amount">請輸入台幣金額：</label>
-      <input type="number" id="amount" placeholder="金額">
+      <input type="number" id="amount" placeholder="金額" step="0.01">
       <button id="convert">執行計算</button>
+      <button id="restart">重新開始</button>
     </div>
     <div id="result"></div>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+      document.addEventListener('DOMContentLoaded', function() {
+  const convertBtn = document.getElementById('convert');
+  const restartBtn = document.getElementById('restart');
+  const amountInput = document.getElementById('amount');
+  const resultDiv = document.getElementById('result');
+
+  convertBtn.addEventListener('click', function() {
+    const amount = parseFloat(amountInput.value);
+
+    if (isNaN(amount)) {
+      alert('請輸入有效的金額');
+      restart();
+      return;
+    }
+
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        const xmlDoc = this.responseXML;
+        const rates = xmlDoc.getElementsByTagName("rate");
+
+        const currencies = ["美金", "歐元", "日圓", "韓元", "澳幣"];
+        const amounts = [];
+
+        for (let i = 0; i < rates.length; i++) {
+          const rate = parseFloat(rates[i].childNodes[0].nodeValue);
+          const convertedAmount = (amount * rate).toFixed(2);
+          amounts.push(convertedAmount);
+        }
+
+        const resultHTML = currencies.map((currency, index) => `<p>${currency}：${amounts[index]} ${currency === "美金" ? "美元" : currency}</p>`).join('');
+
+        resultDiv.innerHTML = resultHTML;
+      }
+    };
+    xhttp.open("GET", "rates.xml", true);
+    xhttp.send();
+  });
+
+  restartBtn.addEventListener('click', restart);
+
+  function restart() {
+    amountInput.value = '';
+    resultDiv.innerHTML = '';
+  }
+});
+
+  </script>
 </body>
 </html>
