@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>匯率轉換計算機</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // 讀取匯率資訊
+      $.ajax({
+        url: 'rates.xml',
+        dataType: 'xml',
+        success: function(data) {
+          // 解析XML並儲存匯率資訊
+          var rates = {};
+          $(data).find('rate').each(function() {
+            var currency = $(this).attr('currency');
+            var rate = parseFloat($(this).text());
+            rates[currency] = rate;
+          });
+
+          // 計算並顯示轉換金額
+          $('#convert').click(function() {
+            var amount = parseFloat($('#amount').val());
+            if (!isNaN(amount)) {
+              var convertedAmounts = {
+                USD: (amount / rates.TWD).toFixed(2),
+                EUR: (amount / rates.TWD * rates.EUR).toFixed(2),
+                JPY: (amount / rates.TWD * rates.JPY).toFixed(2),
+                KRW: (amount / rates.TWD * rates.KRW).toFixed(2),
+                AUD: (amount / rates.TWD * rates.AUD).toFixed(2)
+              };
+
+              // 顯示轉換結果
+              var result = '';
+              for (var currency in convertedAmounts) {
+                result += convertedAmounts[currency] + ' ' + currency + '<br>';
+              }
+              $('#result').html(result);
+            } else {
+              $('#result').html('請輸入有效金額');
+            }
+          });
+        },
+        error: function() {
+          $('#result').html('無法讀取匯率資訊');
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1>匯率轉換計算機</h1>
+  <p>請輸入台幣金額:</p>
+  <input type="text" id="amount" placeholder="輸入金額">
+  <button id="convert">執行計算</button>
+  <h2>轉換結果:</h2>
+  <div id="result"></div>
+</body>
+</html>
